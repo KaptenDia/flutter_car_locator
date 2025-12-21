@@ -1,8 +1,11 @@
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
+import 'package:flutter_car_locator/shared/utils/amenity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/models.dart';
 import '../services/services.dart';
+import '../services/places_service.dart';
 import '../constants/constants.dart';
 import 'location_provider.dart';
 
@@ -82,13 +85,154 @@ final _mockCampaigns = [
 
 @riverpod
 class CampaignNotifier extends _$CampaignNotifier {
+  LocationModel? _lastFetchLocation;
+
   @override
   List<CampaignPinModel> build() {
-    return _mockCampaigns;
+    ref.listen(locationStreamNotifierProvider, (previous, next) {
+      next.whenData((location) {
+        if (location != null) {
+          final shouldReload =
+              _lastFetchLocation == null ||
+              _calculateDistance(
+                    _lastFetchLocation!.latitude,
+                    _lastFetchLocation!.longitude,
+                    location.latitude,
+                    location.longitude,
+                  ) >
+                  0.5;
+
+          if (shouldReload) {
+            loadCampaigns(location);
+          }
+        }
+      });
+    });
+    Future.microtask(() => loadCampaigns());
+    return [];
   }
 
-  Future<void> loadCampaigns() async {
-    state = _mockCampaigns;
+  Future<void> loadCampaigns([LocationModel? overriddenLocation]) async {
+    try {
+      final LocationModel? location;
+      if (overriddenLocation != null) {
+        location = overriddenLocation;
+      } else {
+        final position = await LocationService.instance.getCurrentPosition();
+        location = position != null
+            ? LocationModel.fromPosition(position)
+            : null;
+      }
+
+      // Use actual location or fallback to Jakarta
+      final lat = location?.latitude ?? -6.2088;
+      final lng = location?.longitude ?? 106.8456;
+      if (location != null) {
+        _lastFetchLocation = location;
+      }
+
+      final places = await PlacesService.instance.fetchNearbyPlaces(lat, lng);
+
+      if (places.isEmpty) {
+        if (kDebugMode) {
+          print('Places API returned empty list for $lat, $lng');
+        }
+
+        state = _mockCampaigns;
+        return;
+      }
+
+      final campaigns = places
+          .where((place) => place['tags']?['name'] != null)
+          .map((place) {
+            final tags = place['tags'] as Map<String, dynamic>;
+            final name = tags['name'] as String;
+            final type = _mapOsmTypeToCampaignType(tags);
+            final id = place['id'].toString();
+
+            return CampaignPinModel(
+              id: id,
+              title: name,
+              description: _generateDescription(name, type),
+              location: LocationModel(
+                latitude: place['lat'],
+                longitude: place['lon'],
+                timestamp: DateTime.now(),
+              ),
+              type: type,
+              rewards: _generateRewards(id, type),
+              createdAt: DateTime.now(),
+              expiresAt: DateTime.now().add(const Duration(days: 14)),
+              requiredLoyaltyLevel: LoyaltyLevel
+                  .values[math.Random().nextInt(LoyaltyLevel.values.length)],
+            );
+          })
+          .toList();
+
+      state = campaigns.isNotEmpty ? campaigns : _mockCampaigns;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading campaigns: $e');
+      }
+      state = _mockCampaigns;
+    }
+  }
+
+  CampaignType _mapOsmTypeToCampaignType(Map<String, dynamic> tags) {
+    if (tags.containsKey('amenity')) {
+      final amenity = tags['amenity'];
+      debugPrint('amenity: $amenity');
+      if (amenity == 'cafe' ||
+          amenity == 'restaurant' ||
+          amenity == 'fast_food') {
+        return CampaignType.food;
+      }
+
+      if (entertainmentAmenities.contains(amenity)) {
+        return CampaignType.entertainment;
+      }
+    }
+    if (tags.containsKey('leisure') && tags['leisure'] == 'fitness_centre') {
+      return CampaignType.exclusive;
+    }
+    if (tags.containsKey('shop')) {
+      final shop = tags['shop'];
+      if (shop == 'supermarket' || shop == 'convenience') {
+        return CampaignType.retail;
+      }
+      if (shop == 'clothes' || shop == 'mall') return CampaignType.shopping;
+    }
+    return CampaignType.retail;
+  }
+
+  String _generateDescription(String name, CampaignType type) {
+    switch (type) {
+      case CampaignType.food:
+        return 'Special dining offers at $name. limited time only!';
+      case CampaignType.retail:
+        return 'Shop at $name and earn double points today.';
+      case CampaignType.shopping:
+        return 'Exclusive fashion deals available at $name.';
+      case CampaignType.entertainment:
+        return 'Enjoy your free time at $name with our member perks.';
+      default:
+        return 'Visit $name to unlock special rewards.';
+    }
+  }
+
+  List<RewardModel> _generateRewards(String campaignId, CampaignType type) {
+    final random = math.Random();
+    final discount = (random.nextInt(4) + 1) * 10.0; // 10, 20, 30, 40%
+
+    return [
+      RewardModel(
+        id: 'reward_${campaignId}_1',
+        title: '${discount.toInt()}% Off',
+        description: 'Get ${discount.toInt()}% discount on your purchase',
+        discountPercentage: discount,
+        expiresAt: DateTime.now().add(const Duration(days: 7)),
+      ),
+    ];
   }
 
   void addCampaign(CampaignPinModel campaign) {
@@ -111,7 +255,7 @@ List<CampaignPinModel> nearbyCampaigns(Ref ref) {
   final campaigns = ref.watch(campaignNotifierProvider);
   final location = ref.watch(locationNotifierProvider);
 
-  if (location == null) return [];
+  if (location == null) return campaigns;
 
   return campaigns.where((campaign) {
     final distance = _calculateDistance(
@@ -120,7 +264,7 @@ List<CampaignPinModel> nearbyCampaigns(Ref ref) {
       campaign.location.latitude,
       campaign.location.longitude,
     );
-    return distance <= 5.0;
+    return distance <= 500.0;
   }).toList();
 }
 
@@ -139,13 +283,6 @@ double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
 
   final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
   return earthRadius * c;
-}
-
-bool _canAccessLoyaltyLevel(
-  LoyaltyLevel userLevel,
-  LoyaltyLevel requiredLevel,
-) {
-  return userLevel.index >= requiredLevel.index;
 }
 
 @riverpod
