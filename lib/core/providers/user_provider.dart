@@ -16,7 +16,7 @@ final _mockUser = UserModel(
   createdAt: DateTime.now().subtract(const Duration(days: 30)),
 );
 
-@riverpod
+@Riverpod(keepAlive: true)
 class UserNotifier extends _$UserNotifier {
   @override
   UserModel? build() {
