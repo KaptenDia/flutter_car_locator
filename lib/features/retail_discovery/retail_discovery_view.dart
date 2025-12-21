@@ -23,6 +23,15 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
   Widget build(BuildContext context) {
     final nearbyCampaigns = ref.watch(nearbyCampaignsProvider);
     final user = ref.watch(userNotifierProvider);
+    final filteredCampaigns = nearbyCampaigns.where((campaign) {
+      if (_selectedType != null && campaign.type != _selectedType) return false;
+      if (_showExclusiveOnly) {
+        return campaign.type == CampaignType.exclusive ||
+            (campaign.requiredLoyaltyLevel != null &&
+                campaign.requiredLoyaltyLevel != LoyaltyLevel.bronze);
+      }
+      return true;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -37,198 +46,29 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.read(campaignNotifierProvider.notifier).loadCampaigns();
-        },
-        child: CustomScrollView(
-          slivers: [
-            _buildHeader(user),
-            _buildFilters(),
-            _buildCampaignsList(nearbyCampaigns),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(UserModel? user) {
-    return SliverToBoxAdapter(
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(AppColors.primaryColor),
-              Color(AppColors.primaryColorLight),
-            ],
+      body: CustomScrollView(
+        slivers: [
+          if (user != null)
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _RetailDiscoveryHeaderDelegate(
+                user: user,
+                loyaltyColor: _getLoyaltyLevelColor(user.loyaltyLevel),
+              ),
+            ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _RetailDiscoveryFilterDelegate(
+              selectedType: _selectedType,
+              showExclusiveOnly: _showExclusiveOnly,
+              onTypeSelected: (type) => setState(() => _selectedType = type),
+              onExclusiveChanged: (val) =>
+                  setState(() => _showExclusiveOnly = val),
+              getCampaignTypeColor: _getCampaignTypeColor,
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (user != null) ...[
-                Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(51),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          user.name.substring(0, 1).toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Hello, ${user.name}!',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _getLoyaltyLevelColor(user.loyaltyLevel),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.star,
-                                  size: 12,
-                                  color: Colors.white,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${user.loyaltyLevel.name.toUpperCase()} MEMBER',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '${user.loyaltyPoints}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Text(
-                          'Points',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              const Text(
-                'Discover exclusive offers near you',
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
-            ],
-          ),
-        ),
-      ).animate().fadeIn().slideY(begin: -0.2, end: 0),
-    );
-  }
-
-  Widget _buildFilters() {
-    return SliverToBoxAdapter(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _buildFilterChip(
-                label: 'All',
-                isSelected: _selectedType == null,
-                onTap: () => setState(() => _selectedType = null),
-              ),
-
-              ...CampaignType.values.map(
-                (type) => _buildFilterChip(
-                  label: type.name.toUpperCase(),
-                  isSelected: _selectedType == type,
-                  onTap: () => setState(() => _selectedType = type),
-                  color: Color(_getCampaignTypeColor(type)),
-                ),
-              ),
-
-              _buildFilterChip(
-                label: 'EXCLUSIVE',
-                isSelected: _showExclusiveOnly,
-                onTap: () =>
-                    setState(() => _showExclusiveOnly = !_showExclusiveOnly),
-                color: const Color(AppColors.exclusiveColor),
-              ),
-            ],
-          ),
-        ),
-      ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.3, end: 0),
-    );
-  }
-
-  Widget _buildFilterChip({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-    Color? color,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      child: FilterChip(
-        label: Text(label),
-        selected: isSelected,
-        onSelected: (_) => onTap(),
-        selectedColor:
-            color?.withAlpha(51) ??
-            const Color(AppColors.primaryColor).withAlpha(51),
-        checkmarkColor: color ?? const Color(AppColors.primaryColor),
-        labelStyle: TextStyle(
-          color: isSelected
-              ? (color ?? const Color(AppColors.primaryColor))
-              : Colors.grey[600],
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
+          _buildCampaignsList(filteredCampaigns),
+        ],
       ),
     );
   }
@@ -295,9 +135,10 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
                   ),
                 ),
               )
-              .animate(delay: Duration(milliseconds: index * 100))
-              .fadeIn()
-              .slideY(begin: 0.2, end: 0),
+              .animate(delay: Duration(milliseconds: (index % 5) * 50))
+              .fadeIn(duration: 300.ms)
+              .slideY(begin: 0.1, end: 0)
+              .shimmer(duration: 1.seconds, color: Colors.white.withAlpha(100)),
     );
   }
 
@@ -608,5 +449,233 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
       case LoyaltyLevel.platinum:
         return Colors.purple;
     }
+  }
+}
+
+class _RetailDiscoveryHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final UserModel user;
+  final Color loyaltyColor;
+
+  _RetailDiscoveryHeaderDelegate({
+    required this.user,
+    required this.loyaltyColor,
+  });
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(AppColors.primaryColor),
+            Color(AppColors.primaryColorLight),
+          ],
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(51),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      user.name.substring(0, 1).toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hello, ${user.name}!',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: loyaltyColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              size: 12,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${user.loyaltyLevel.name.toUpperCase()} MEMBER',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${user.loyaltyPoints}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      'Points',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ],
+            ).animate().fadeIn(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 100;
+
+  @override
+  double get minExtent => 100;
+
+  @override
+  bool shouldRebuild(covariant _RetailDiscoveryHeaderDelegate oldDelegate) {
+    return oldDelegate.user != user;
+  }
+}
+
+class _RetailDiscoveryFilterDelegate extends SliverPersistentHeaderDelegate {
+  final CampaignType? selectedType;
+  final bool showExclusiveOnly;
+  final Function(CampaignType?) onTypeSelected;
+  final Function(bool) onExclusiveChanged;
+  final int Function(CampaignType) getCampaignTypeColor;
+
+  _RetailDiscoveryFilterDelegate({
+    required this.selectedType,
+    required this.showExclusiveOnly,
+    required this.onTypeSelected,
+    required this.onExclusiveChanged,
+    required this.getCampaignTypeColor,
+  });
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      color: Colors.grey[50],
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildFilterChip(
+              label: 'All',
+              isSelected: selectedType == null,
+              onTap: () => onTypeSelected(null),
+            ),
+            ...CampaignType.values.map(
+              (type) => _buildFilterChip(
+                label: type.name.toUpperCase(),
+                isSelected: selectedType == type,
+                onTap: () => onTypeSelected(type),
+                color: Color(getCampaignTypeColor(type)),
+              ),
+            ),
+            _buildFilterChip(
+              label: 'EXCLUSIVE',
+              isSelected: showExclusiveOnly,
+              onTap: () => onExclusiveChanged(!showExclusiveOnly),
+              color: const Color(AppColors.exclusiveColor),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      child: FilterChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (_) => onTap(),
+        selectedColor:
+            color?.withAlpha(51) ??
+            const Color(AppColors.primaryColor).withAlpha(51),
+        checkmarkColor: color ?? const Color(AppColors.primaryColor),
+        labelStyle: TextStyle(
+          color: isSelected
+              ? (color ?? const Color(AppColors.primaryColor))
+              : Colors.grey[600],
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 70;
+
+  @override
+  double get minExtent => 70;
+
+  @override
+  bool shouldRebuild(covariant _RetailDiscoveryFilterDelegate oldDelegate) {
+    return oldDelegate.selectedType != selectedType ||
+        oldDelegate.showExclusiveOnly != showExclusiveOnly;
   }
 }
