@@ -369,7 +369,7 @@ class CampaignDetailView extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'Rp ${reward.discountAmount!.toInt()}',
+                          'RM ${reward.discountAmount!.toStringAsFixed(2)}',
                           style: const TextStyle(
                             color: Color(AppColors.successColor),
                             fontSize: 12,
