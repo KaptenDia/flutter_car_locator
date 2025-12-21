@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_car_locator/core/providers/location_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/services/services.dart';
-import 'features/home/views/home_view.dart';
+import 'features/home/home_view.dart';
 import 'core/constants/constants.dart';
 
 void main() async {
