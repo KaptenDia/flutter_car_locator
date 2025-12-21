@@ -499,58 +499,66 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Filter Options',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              'Campaign Type',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-
-            const SizedBox(height: 12),
-
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ChoiceChip(
-                  label: const Text('All'),
-                  selected: _selectedType == null,
-                  onSelected: (selected) =>
-                      setState(() => _selectedType = null),
+                const Text(
+                  'Filter Options',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-
-                ...CampaignType.values.map(
-                  (type) => ChoiceChip(
-                    label: Text(type.name.toUpperCase()),
-                    selected: _selectedType == type,
-                    onSelected: (selected) =>
-                        setState(() => _selectedType = selected ? type : null),
+                const SizedBox(height: 20),
+                const Text(
+                  'Campaign Type',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ChoiceChip(
+                      label: const Text('All'),
+                      selected: _selectedType == null,
+                      onSelected: (selected) {
+                        setModalState(() => _selectedType = null);
+                        setState(() {});
+                      },
+                    ),
+                    ...CampaignType.values.map(
+                      (type) => ChoiceChip(
+                        label: Text(type.name.toUpperCase()),
+                        selected: _selectedType == type,
+                        onSelected: (selected) {
+                          setModalState(
+                            () => _selectedType = selected ? type : null,
+                          );
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                SwitchListTile(
+                  title: const Text('Exclusive Offers Only'),
+                  subtitle: const Text(
+                    'Show only exclusive loyalty member offers',
                   ),
+                  value: _showExclusiveOnly,
+                  onChanged: (value) {
+                    setModalState(() => _showExclusiveOnly = value);
+                    setState(() {});
+                  },
                 ),
               ],
             ),
-
-            const SizedBox(height: 20),
-
-            SwitchListTile(
-              title: const Text('Exclusive Offers Only'),
-              subtitle: const Text('Show only exclusive loyalty member offers'),
-              value: _showExclusiveOnly,
-              onChanged: (value) => setState(() => _showExclusiveOnly = value),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
