@@ -139,7 +139,7 @@ class _GroceryListViewState extends ConsumerState<GroceryListView> {
                     style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   Text(
-                    'Rp ${totalPrice.toStringAsFixed(0)}',
+                    'RM ${totalPrice.toStringAsFixed(2)}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -308,7 +308,7 @@ class _GroceryListViewState extends ConsumerState<GroceryListView> {
                     if (item.price != null) ...[
                       const Text(' • '),
                       Text(
-                        'Rp ${item.price!.toStringAsFixed(0)}',
+                        'RM ${item.price!.toStringAsFixed(2)}',
                         style: TextStyle(
                           color: item.isCompleted
                               ? Colors.grey
@@ -625,7 +625,7 @@ class _GroceryListViewState extends ConsumerState<GroceryListView> {
               TextField(
                 controller: priceController,
                 decoration: const InputDecoration(
-                  labelText: 'Price (Rp)',
+                  labelText: 'Price (RM)',
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,

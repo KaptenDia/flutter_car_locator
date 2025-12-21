@@ -15,7 +15,7 @@ final _defaultGroceryItems = [
     description: 'Fresh whole milk 1L',
     quantity: 2,
     unit: 'bottles',
-    price: 25000,
+    price: 7.50,
     category: 'Dairy',
   ),
   const GroceryItemModel(
@@ -24,7 +24,7 @@ final _defaultGroceryItems = [
     description: 'Whole wheat bread',
     quantity: 1,
     unit: 'loaf',
-    price: 15000,
+    price: 4.50,
     category: 'Bakery',
   ),
   const GroceryItemModel(
@@ -33,7 +33,7 @@ final _defaultGroceryItems = [
     description: 'Free-range chicken eggs',
     quantity: 12,
     unit: 'pieces',
-    price: 30000,
+    price: 8.90,
     category: 'Dairy',
   ),
   const GroceryItemModel(
@@ -42,7 +42,7 @@ final _defaultGroceryItems = [
     description: 'Fresh bananas',
     quantity: 1,
     unit: 'bunch',
-    price: 20000,
+    price: 6.00,
     category: 'Fruits',
   ),
   const GroceryItemModel(
@@ -51,7 +51,7 @@ final _defaultGroceryItems = [
     description: 'Premium jasmine rice 5kg',
     quantity: 1,
     unit: 'bag',
-    price: 75000,
+    price: 28.00,
     category: 'Grains',
   ),
 ];
