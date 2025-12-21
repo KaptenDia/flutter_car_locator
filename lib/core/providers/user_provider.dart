@@ -20,16 +20,15 @@ final _mockUser = UserModel(
 class UserNotifier extends _$UserNotifier {
   @override
   UserModel? build() {
-    _loadUser();
-    return null;
+    return _getUser();
   }
 
-  void _loadUser() {
+  UserModel _getUser() {
     final user = StorageService.instance.getObject<UserModel>(
       AppConstants.userDataKey,
       (json) => UserModel.fromJson(json),
     );
-    state = user ?? _mockUser;
+    return user ?? _mockUser;
   }
 
   Future<void> updateUser(UserModel user) async {
