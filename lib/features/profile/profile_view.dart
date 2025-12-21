@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_car_locator/core/models/campaign_pin_model.dart';
+import 'package:flutter_car_locator/features/profile/help_support_view.dart';
+import 'package:flutter_car_locator/features/profile/notifications_view.dart';
+import 'package:flutter_car_locator/features/profile/settings_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_constants.dart';
@@ -8,9 +11,6 @@ import '../../../core/models/user_model.dart';
 import '../../../core/providers/car_anchor_provider.dart';
 import '../../../core/providers/user_provider.dart';
 import '../../../core/providers/campaign_provider.dart';
-import '../../settings/views/notifications_view.dart';
-import '../../settings/views/settings_view.dart';
-import '../../settings/views/help_support_view.dart';
 
 class ProfileView extends ConsumerWidget {
   const ProfileView({super.key});
