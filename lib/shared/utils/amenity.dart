@@ -1,0 +1,16 @@
+const entertainmentAmenities = {
+  'arts_centre',
+  'cinema',
+  'theatre',
+  'music_venue',
+  'planetarium',
+  'studio',
+  'events_venue',
+  'exhibition_centre',
+  'conference_centre',
+  'community_centre',
+  'social_centre',
+  'nightclub',
+  'casino',
+  'gambling',
+};
