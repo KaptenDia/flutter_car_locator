@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:permission_handler/permission_handler.dart';
@@ -49,7 +50,9 @@ class NotificationService {
 
   void _onDidReceiveNotificationResponse(NotificationResponse response) {
     // Handle notification tap
-    print('Notification tapped: ${response.payload}');
+    if (kDebugMode) {
+      print('Notification tapped: ${response.payload}');
+    }
   }
 
   Future<void> showNotification({

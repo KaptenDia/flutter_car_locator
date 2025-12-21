@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/models.dart';
@@ -20,7 +21,9 @@ class LocationNotifier extends _$LocationNotifier {
       }
     } catch (e) {
       // Handle error - could emit to an error provider
-      print('Error getting current location: $e');
+      if (kDebugMode) {
+        print('Error getting current location: $e');
+      }
     }
   }
 
