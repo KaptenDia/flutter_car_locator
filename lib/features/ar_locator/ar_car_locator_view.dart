@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:math' as math;
+import 'package:flutter_compass/flutter_compass.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/constants/constants.dart';
 
@@ -22,12 +24,25 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
   late AnimationController _rotationAnimationController;
   late Animation<double> _pulseAnimation;
   late Animation<double> _rotationAnimation;
+  double? _heading;
+  StreamSubscription<CompassEvent>? _compassSubscription;
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _initializeCamera();
+    _initializeCompass();
+  }
+
+  void _initializeCompass() {
+    _compassSubscription = FlutterCompass.events?.listen((CompassEvent event) {
+      if (mounted) {
+        setState(() {
+          _heading = event.heading;
+        });
+      }
+    });
   }
 
   void _initializeAnimations() {
@@ -87,13 +102,16 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
     _cameraController?.dispose();
     _pulseAnimationController.dispose();
     _rotationAnimationController.dispose();
+    _compassSubscription?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final carAnchor = ref.watch(carAnchorNotifierProvider);
-    final currentLocation = ref.watch(locationNotifierProvider);
+    final currentLocation = ref
+        .watch(locationStreamNotifierProvider)
+        .valueOrNull;
 
     // Check if no car is marked
     if (carAnchor == null) {
@@ -165,7 +183,7 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
 
           // AR Overlay
           if (carAnchor != null && distance != null && bearing != null)
-            _buildArOverlay(distance, bearing),
+            _buildArOverlay(distance, bearing, _heading ?? 0),
 
           // Car not found message
           if (carAnchor == null) _buildNoCarMessage(),
@@ -200,7 +218,7 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
     }
   }
 
-  Widget _buildArOverlay(double distance, double bearing) {
+  Widget _buildArOverlay(double distance, double bearing, double heading) {
     return AnimatedBuilder(
       animation: Listenable.merge([_pulseAnimation, _rotationAnimation]),
       builder: (context, child) {
@@ -209,6 +227,8 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
           painter: ArOverlayPainter(
             distance: distance,
             bearing: bearing,
+            heading: heading,
+            distanceText: _formatDistance(distance),
             pulseAnimation: _pulseAnimation.value,
             rotationAnimation: _rotationAnimation.value,
           ),
@@ -391,12 +411,16 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
 class ArOverlayPainter extends CustomPainter {
   final double distance;
   final double bearing;
+  final double heading;
+  final String distanceText;
   final double pulseAnimation;
   final double rotationAnimation;
 
   ArOverlayPainter({
     required this.distance,
     required this.bearing,
+    required this.heading,
+    required this.distanceText,
     required this.pulseAnimation,
     required this.rotationAnimation,
   });
@@ -414,10 +438,11 @@ class ArOverlayPainter extends CustomPainter {
     canvas.drawCircle(center, 80, compassPaint);
 
     // Draw bearing indicator
-    final bearingRadians = bearing * math.pi / 180;
+    // Subtract heading to make it relative to device orientation
+    final relativeBearing = (bearing - heading) * math.pi / 180;
     final arrowEnd = Offset(
-      center.dx + 60 * math.sin(bearingRadians),
-      center.dy - 60 * math.cos(bearingRadians),
+      center.dx + 60 * math.sin(relativeBearing),
+      center.dy - 60 * math.cos(relativeBearing),
     );
 
     final arrowPaint = Paint()
@@ -437,7 +462,7 @@ class ArOverlayPainter extends CustomPainter {
     // Draw distance text
     final textPainter = TextPainter(
       text: TextSpan(
-        text: '${(distance / 1000).toStringAsFixed(1)}km',
+        text: distanceText,
         style: const TextStyle(
           color: Colors.white,
           fontSize: 16,
@@ -458,6 +483,8 @@ class ArOverlayPainter extends CustomPainter {
   bool shouldRepaint(ArOverlayPainter oldDelegate) {
     return oldDelegate.distance != distance ||
         oldDelegate.bearing != bearing ||
+        oldDelegate.heading != heading ||
+        oldDelegate.distanceText != distanceText ||
         oldDelegate.pulseAnimation != pulseAnimation ||
         oldDelegate.rotationAnimation != rotationAnimation;
   }

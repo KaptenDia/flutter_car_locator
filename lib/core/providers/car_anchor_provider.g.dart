@@ -6,11 +6,11 @@ part of 'car_anchor_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$distanceToCarHash() => r'c319b78a7970865a3214c53279b07c2cce6ca3e2';
+String _$distanceToCarHash() => r'cb2624b5c7706ec065d3e45c53c90bba546d1187';
 
 /// See also [distanceToCar].
 @ProviderFor(distanceToCar)
-final distanceToCarProvider = AutoDisposeProvider<double?>.internal(
+final distanceToCarProvider = Provider<double?>.internal(
   distanceToCar,
   name: r'distanceToCarProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -22,12 +22,12 @@ final distanceToCarProvider = AutoDisposeProvider<double?>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef DistanceToCarRef = AutoDisposeProviderRef<double?>;
-String _$bearingToCarHash() => r'1d48594372222ec73f0b62bfaac4fb74591c6f50';
+typedef DistanceToCarRef = ProviderRef<double?>;
+String _$bearingToCarHash() => r'9679d1ecb437a036d3a2657cacbfa3b3d83adf7b';
 
 /// See also [bearingToCar].
 @ProviderFor(bearingToCar)
-final bearingToCarProvider = AutoDisposeProvider<double?>.internal(
+final bearingToCarProvider = Provider<double?>.internal(
   bearingToCar,
   name: r'bearingToCarProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -39,13 +39,13 @@ final bearingToCarProvider = AutoDisposeProvider<double?>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef BearingToCarRef = AutoDisposeProviderRef<double?>;
+typedef BearingToCarRef = ProviderRef<double?>;
 String _$formattedDistanceToCarHash() =>
-    r'fa9ad066a5dfc11afc731d987fdcc2247ec20c96';
+    r'5948fd3763a72a913015a9e8652c438741d0e738';
 
 /// See also [formattedDistanceToCar].
 @ProviderFor(formattedDistanceToCar)
-final formattedDistanceToCarProvider = AutoDisposeProvider<String?>.internal(
+final formattedDistanceToCarProvider = Provider<String?>.internal(
   formattedDistanceToCar,
   name: r'formattedDistanceToCarProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -57,13 +57,13 @@ final formattedDistanceToCarProvider = AutoDisposeProvider<String?>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef FormattedDistanceToCarRef = AutoDisposeProviderRef<String?>;
+typedef FormattedDistanceToCarRef = ProviderRef<String?>;
 String _$formattedBearingToCarHash() =>
-    r'31efe46552a6547c39dd5faed1dc374ca0997489';
+    r'5fac930de5dfd9ce6101122a05ef30a0667dd9d8';
 
 /// See also [formattedBearingToCar].
 @ProviderFor(formattedBearingToCar)
-final formattedBearingToCarProvider = AutoDisposeProvider<String?>.internal(
+final formattedBearingToCarProvider = Provider<String?>.internal(
   formattedBearingToCar,
   name: r'formattedBearingToCarProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -75,13 +75,13 @@ final formattedBearingToCarProvider = AutoDisposeProvider<String?>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef FormattedBearingToCarRef = AutoDisposeProviderRef<String?>;
-String _$carAnchorNotifierHash() => r'454dd3f032d922de9412e6ba26e521b65597311d';
+typedef FormattedBearingToCarRef = ProviderRef<String?>;
+String _$carAnchorNotifierHash() => r'b5c6c63e80cee0e27e69762abbe573624522336a';
 
 /// See also [CarAnchorNotifier].
 @ProviderFor(CarAnchorNotifier)
 final carAnchorNotifierProvider =
-    AutoDisposeNotifierProvider<CarAnchorNotifier, CarAnchorModel?>.internal(
+    NotifierProvider<CarAnchorNotifier, CarAnchorModel?>.internal(
       CarAnchorNotifier.new,
       name: r'carAnchorNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -91,6 +91,6 @@ final carAnchorNotifierProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$CarAnchorNotifier = AutoDisposeNotifier<CarAnchorModel?>;
+typedef _$CarAnchorNotifier = Notifier<CarAnchorModel?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

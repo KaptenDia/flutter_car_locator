@@ -7,7 +7,7 @@ part of 'grocery_provider.dart';
 // **************************************************************************
 
 String _$groceryItemsByCategoryHash() =>
-    r'cefb4e214b7aa502055a764c222ef6c4fec90a0a';
+    r'c343c65a944e38f13b71cd0486fbd3511caee0b6';
 
 /// See also [groceryItemsByCategory].
 @ProviderFor(groceryItemsByCategory)
@@ -27,7 +27,7 @@ final groceryItemsByCategoryProvider =
 typedef GroceryItemsByCategoryRef =
     AutoDisposeProviderRef<List<GroceryItemModel>>;
 String _$groupedGroceryItemsHash() =>
-    r'aa874a8f0bff70784f661cfc695aa5199b170f78';
+    r'314223ad12375d362375cdbbd8684386a6d61c10';
 
 /// See also [groupedGroceryItems].
 @ProviderFor(groupedGroceryItems)
@@ -46,7 +46,7 @@ final groupedGroceryItemsProvider =
 // ignore: unused_element
 typedef GroupedGroceryItemsRef =
     AutoDisposeProviderRef<Map<String, List<GroceryItemModel>>>;
-String _$totalGroceryPriceHash() => r'f4b609075c7279e13c415059dbd293c16c4cc95c';
+String _$totalGroceryPriceHash() => r'3f2b6d040f939ce088441be116be27bd95d61a31';
 
 /// See also [totalGroceryPrice].
 @ProviderFor(totalGroceryPrice)
@@ -63,7 +63,7 @@ final totalGroceryPriceProvider = AutoDisposeProvider<double>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TotalGroceryPriceRef = AutoDisposeProviderRef<double>;
-String _$totalGroceryItemsHash() => r'db817e0514b2170309547b1068e6b18f53e16b89';
+String _$totalGroceryItemsHash() => r'2cdd4c9be71772a60ee7ec8c5d6acb70bf1d5ef7';
 
 /// See also [totalGroceryItems].
 @ProviderFor(totalGroceryItems)
@@ -81,7 +81,7 @@ final totalGroceryItemsProvider = AutoDisposeProvider<int>.internal(
 // ignore: unused_element
 typedef TotalGroceryItemsRef = AutoDisposeProviderRef<int>;
 String _$completedGroceryItemsHash() =>
-    r'12ac44dd10cc050aa21cc138481314d9f14d3f3b';
+    r'b59009935009a8c7b25b6fffb9e40d66b2822658';
 
 /// See also [completedGroceryItems].
 @ProviderFor(completedGroceryItems)
@@ -98,7 +98,7 @@ final completedGroceryItemsProvider = AutoDisposeProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CompletedGroceryItemsRef = AutoDisposeProviderRef<int>;
-String _$groceryProgressHash() => r'3b9cf0f696fcef8a5bcd8261b4e6950b83e8e145';
+String _$groceryProgressHash() => r'75fed8164a5f9590ffa96708f4bdd2710518a802';
 
 /// See also [groceryProgress].
 @ProviderFor(groceryProgress)

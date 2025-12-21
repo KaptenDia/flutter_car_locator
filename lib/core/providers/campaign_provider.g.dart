@@ -6,33 +6,29 @@ part of 'campaign_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$nearbyCampaignsHash() => r'4eeb03af79ae95c51cceae859441198192276d74';
+String _$nearbyCampaignsHash() => r'f8550bc30e658272ad6fa55c5ebb1af3fd31c915';
 
 /// See also [nearbyCampaigns].
 @ProviderFor(nearbyCampaigns)
-final nearbyCampaignsProvider =
-    AutoDisposeProvider<List<CampaignPinModel>>.internal(
-      nearbyCampaigns,
-      name: r'nearbyCampaignsProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$nearbyCampaignsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final nearbyCampaignsProvider = Provider<List<CampaignPinModel>>.internal(
+  nearbyCampaigns,
+  name: r'nearbyCampaignsProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$nearbyCampaignsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef NearbyCampaignsRef = AutoDisposeProviderRef<List<CampaignPinModel>>;
-String _$campaignNotifierHash() => r'12e75f8101ee244b990a8513b63f1194a0ce214c';
+typedef NearbyCampaignsRef = ProviderRef<List<CampaignPinModel>>;
+String _$campaignNotifierHash() => r'd2711d87a56a2e6d5735f5ca5376d0ef743047c3';
 
 /// See also [CampaignNotifier].
 @ProviderFor(CampaignNotifier)
 final campaignNotifierProvider =
-    AutoDisposeNotifierProvider<
-      CampaignNotifier,
-      List<CampaignPinModel>
-    >.internal(
+    NotifierProvider<CampaignNotifier, List<CampaignPinModel>>.internal(
       CampaignNotifier.new,
       name: r'campaignNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -42,7 +38,7 @@ final campaignNotifierProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$CampaignNotifier = AutoDisposeNotifier<List<CampaignPinModel>>;
+typedef _$CampaignNotifier = Notifier<List<CampaignPinModel>>;
 String _$selectedCampaignNotifierHash() =>
     r'1c10e855a59b9428b669dd835072ae8d0dfd0a26';
 

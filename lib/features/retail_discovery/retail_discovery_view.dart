@@ -46,29 +46,33 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
           ),
         ],
       ),
-      body: CustomScrollView(
-        slivers: [
-          if (user != null)
+      body: RefreshIndicator(
+        onRefresh: () =>
+            ref.read(campaignNotifierProvider.notifier).loadCampaigns(),
+        child: CustomScrollView(
+          slivers: [
+            if (user != null)
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _RetailDiscoveryHeaderDelegate(
+                  user: user,
+                  loyaltyColor: _getLoyaltyLevelColor(user.loyaltyLevel),
+                ),
+              ),
             SliverPersistentHeader(
               pinned: true,
-              delegate: _RetailDiscoveryHeaderDelegate(
-                user: user,
-                loyaltyColor: _getLoyaltyLevelColor(user.loyaltyLevel),
+              delegate: _RetailDiscoveryFilterDelegate(
+                selectedType: _selectedType,
+                showExclusiveOnly: _showExclusiveOnly,
+                onTypeSelected: (type) => setState(() => _selectedType = type),
+                onExclusiveChanged: (val) =>
+                    setState(() => _showExclusiveOnly = val),
+                getCampaignTypeColor: _getCampaignTypeColor,
               ),
             ),
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _RetailDiscoveryFilterDelegate(
-              selectedType: _selectedType,
-              showExclusiveOnly: _showExclusiveOnly,
-              onTypeSelected: (type) => setState(() => _selectedType = type),
-              onExclusiveChanged: (val) =>
-                  setState(() => _showExclusiveOnly = val),
-              getCampaignTypeColor: _getCampaignTypeColor,
-            ),
-          ),
-          _buildCampaignsList(filteredCampaigns),
-        ],
+            _buildCampaignsList(filteredCampaigns),
+          ],
+        ),
       ),
     );
   }

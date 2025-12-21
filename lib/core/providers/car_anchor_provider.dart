@@ -8,7 +8,7 @@ import 'location_provider.dart';
 
 part 'car_anchor_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class CarAnchorNotifier extends _$CarAnchorNotifier {
   @override
   CarAnchorModel? build() {
@@ -79,7 +79,7 @@ class CarAnchorNotifier extends _$CarAnchorNotifier {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 double? distanceToCar(Ref ref) {
   final carAnchor = ref.watch(carAnchorNotifierProvider);
   final currentLocation = ref.watch(locationNotifierProvider);
@@ -91,7 +91,7 @@ double? distanceToCar(Ref ref) {
   return currentLocation.distanceTo(carAnchor.location);
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 double? bearingToCar(Ref ref) {
   final carAnchor = ref.watch(carAnchorNotifierProvider);
   final currentLocation = ref.watch(locationNotifierProvider);
@@ -103,7 +103,7 @@ double? bearingToCar(Ref ref) {
   return currentLocation.bearingTo(carAnchor.location);
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 String? formattedDistanceToCar(Ref ref) {
   final distance = ref.watch(distanceToCarProvider);
   if (distance == null) return null;
@@ -111,7 +111,7 @@ String? formattedDistanceToCar(Ref ref) {
   return LocationService.instance.formatDistance(distance);
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 String? formattedBearingToCar(Ref ref) {
   final bearing = ref.watch(bearingToCarProvider);
   if (bearing == null) return null;

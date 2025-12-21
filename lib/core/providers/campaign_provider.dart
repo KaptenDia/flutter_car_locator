@@ -11,79 +11,7 @@ import 'location_provider.dart';
 
 part 'campaign_provider.g.dart';
 
-final _mockCampaigns = [
-  CampaignPinModel(
-    id: '1',
-    title: 'Starbucks Coffee',
-    description: '20% off your next coffee order',
-    location: LocationModel(
-      latitude: -6.2088,
-      longitude: 106.8456,
-      timestamp: DateTime.now(),
-    ),
-    type: CampaignType.food,
-    rewards: [
-      const RewardModel(
-        id: 'reward_1',
-        title: '20% Off Coffee',
-        description: 'Get 20% discount on any coffee drink',
-        discountPercentage: 20.0,
-        expiresAt: null,
-      ),
-    ],
-    createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-    expiresAt: DateTime.now().add(const Duration(days: 7)),
-    requiredLoyaltyLevel: LoyaltyLevel.bronze,
-  ),
-  CampaignPinModel(
-    id: '2',
-    title: 'McDonald\'s Deals',
-    description: 'Buy 1 Get 1 Free Big Mac',
-    location: LocationModel(
-      latitude: -6.2100,
-      longitude: 106.8470,
-      timestamp: DateTime.now(),
-    ),
-    type: CampaignType.food,
-    rewards: [
-      const RewardModel(
-        id: 'reward_2',
-        title: 'BOGO Big Mac',
-        description: 'Buy one Big Mac, get one free',
-        discountPercentage: 50.0,
-        expiresAt: null,
-      ),
-    ],
-    createdAt: DateTime.now().subtract(const Duration(hours: 4)),
-    expiresAt: DateTime.now().add(const Duration(days: 3)),
-    requiredLoyaltyLevel: LoyaltyLevel.bronze,
-  ),
-  CampaignPinModel(
-    id: '3',
-    title: 'ZARA Fashion Sale',
-    description: 'Up to 50% off on selected items',
-    location: LocationModel(
-      latitude: -6.2095,
-      longitude: 106.8445,
-      timestamp: DateTime.now(),
-    ),
-    type: CampaignType.shopping,
-    rewards: [
-      const RewardModel(
-        id: 'reward_3',
-        title: '50% Off Fashion',
-        description: 'Up to 50% discount on selected fashion items',
-        discountPercentage: 50.0,
-        expiresAt: null,
-      ),
-    ],
-    createdAt: DateTime.now().subtract(const Duration(hours: 1)),
-    expiresAt: DateTime.now().add(const Duration(days: 5)),
-    requiredLoyaltyLevel: LoyaltyLevel.silver,
-  ),
-];
-
-@riverpod
+@Riverpod(keepAlive: true)
 class CampaignNotifier extends _$CampaignNotifier {
   LocationModel? _lastFetchLocation;
 
@@ -124,12 +52,14 @@ class CampaignNotifier extends _$CampaignNotifier {
             : null;
       }
 
-      // Use actual location or fallback to Jakarta
-      final lat = location?.latitude ?? -6.2088;
-      final lng = location?.longitude ?? 106.8456;
-      if (location != null) {
-        _lastFetchLocation = location;
+      if (location == null) {
+        state = [];
+        return;
       }
+
+      final lat = location.latitude;
+      final lng = location.longitude;
+      _lastFetchLocation = location;
 
       final places = await PlacesService.instance.fetchNearbyPlaces(lat, lng);
 
@@ -138,7 +68,7 @@ class CampaignNotifier extends _$CampaignNotifier {
           print('Places API returned empty list for $lat, $lng');
         }
 
-        state = _mockCampaigns;
+        state = [];
         return;
       }
 
@@ -169,12 +99,15 @@ class CampaignNotifier extends _$CampaignNotifier {
           })
           .toList();
 
-      state = campaigns.isNotEmpty ? campaigns : _mockCampaigns;
+      state = campaigns;
     } catch (e) {
       if (kDebugMode) {
         print('Error loading campaigns: $e');
       }
-      state = _mockCampaigns;
+      // If we already have data, don't clear it on error
+      if (state.isEmpty) {
+        state = [];
+      }
     }
   }
 
@@ -250,7 +183,7 @@ class CampaignNotifier extends _$CampaignNotifier {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 List<CampaignPinModel> nearbyCampaigns(Ref ref) {
   final campaigns = ref.watch(campaignNotifierProvider);
   final location = ref.watch(locationNotifierProvider);
@@ -264,7 +197,7 @@ List<CampaignPinModel> nearbyCampaigns(Ref ref) {
       campaign.location.latitude,
       campaign.location.longitude,
     );
-    return distance <= 500.0;
+    return distance <= 10.0; // 10 km radius
   }).toList();
 }
 

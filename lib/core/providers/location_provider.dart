@@ -6,11 +6,12 @@ import '../services/services.dart';
 
 part 'location_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class LocationNotifier extends _$LocationNotifier {
   @override
   LocationModel? build() {
-    return null;
+    // Automatically keep the state updated from the stream
+    return ref.watch(locationStreamNotifierProvider).valueOrNull;
   }
 
   Future<void> getCurrentLocation() async {
@@ -36,7 +37,7 @@ class LocationNotifier extends _$LocationNotifier {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class LocationStreamNotifier extends _$LocationStreamNotifier {
   @override
   Stream<LocationModel?> build() {

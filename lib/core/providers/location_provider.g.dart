@@ -7,7 +7,7 @@ part of 'location_provider.dart';
 // **************************************************************************
 
 String _$hasLocationPermissionHash() =>
-    r'87cd668f78582363fd4fcd28b9c58d5635c89913';
+    r'b91ce751118d494e9df61d9fc9d5f0940d2327fd';
 
 /// See also [hasLocationPermission].
 @ProviderFor(hasLocationPermission)
@@ -25,7 +25,7 @@ final hasLocationPermissionProvider = AutoDisposeFutureProvider<bool>.internal(
 // ignore: unused_element
 typedef HasLocationPermissionRef = AutoDisposeFutureProviderRef<bool>;
 String _$requestLocationPermissionHash() =>
-    r'ff4869902857e844271e1b5ce94a3246fcb96a3c';
+    r'6826eff4d5ec3d32006e60d5d2d0a955f9c0dfe0';
 
 /// See also [requestLocationPermission].
 @ProviderFor(requestLocationPermission)
@@ -43,12 +43,12 @@ final requestLocationPermissionProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef RequestLocationPermissionRef = AutoDisposeFutureProviderRef<bool>;
-String _$locationNotifierHash() => r'0cae66512267cb374f3ee4c22dd3c66562e7f66e';
+String _$locationNotifierHash() => r'07ff2ce688076eb19a9c60fdcf44d17d4b780bab';
 
 /// See also [LocationNotifier].
 @ProviderFor(LocationNotifier)
 final locationNotifierProvider =
-    AutoDisposeNotifierProvider<LocationNotifier, LocationModel?>.internal(
+    NotifierProvider<LocationNotifier, LocationModel?>.internal(
       LocationNotifier.new,
       name: r'locationNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -58,17 +58,14 @@ final locationNotifierProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$LocationNotifier = AutoDisposeNotifier<LocationModel?>;
+typedef _$LocationNotifier = Notifier<LocationModel?>;
 String _$locationStreamNotifierHash() =>
-    r'f7a6475fe92c35642861b0fb218a6d705fe5d56a';
+    r'98d9df9043fcb11034d88346ab4eb80d2e431734';
 
 /// See also [LocationStreamNotifier].
 @ProviderFor(LocationStreamNotifier)
 final locationStreamNotifierProvider =
-    AutoDisposeStreamNotifierProvider<
-      LocationStreamNotifier,
-      LocationModel?
-    >.internal(
+    StreamNotifierProvider<LocationStreamNotifier, LocationModel?>.internal(
       LocationStreamNotifier.new,
       name: r'locationStreamNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -78,6 +75,6 @@ final locationStreamNotifierProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$LocationStreamNotifier = AutoDisposeStreamNotifier<LocationModel?>;
+typedef _$LocationStreamNotifier = StreamNotifier<LocationModel?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

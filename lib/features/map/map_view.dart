@@ -31,6 +31,28 @@ class _MapViewState extends ConsumerState<MapView> {
     final nearbyCampaigns = ref.watch(nearbyCampaignsProvider);
     final user = ref.watch(userNotifierProvider);
 
+    if (currentLocation == null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              const Text('Fetching your location...'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref
+                    .read(locationNotifierProvider.notifier)
+                    .getCurrentLocation(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return _buildMapScaffold(currentLocation, carAnchor, nearbyCampaigns, user);
   }
 
@@ -71,9 +93,10 @@ class _MapViewState extends ConsumerState<MapView> {
           GoogleMap(
             onMapCreated: _onMapCreated,
             initialCameraPosition: CameraPosition(
-              target: currentLocation != null
-                  ? LatLng(currentLocation.latitude, currentLocation.longitude)
-                  : const LatLng(-6.2088, 106.8456), // Default Jakarta
+              target: LatLng(
+                currentLocation.latitude,
+                currentLocation.longitude,
+              ),
               zoom: AppConstants.defaultZoom,
             ),
             markers: _buildMarkers(currentLocation, carAnchor, nearbyCampaigns),
