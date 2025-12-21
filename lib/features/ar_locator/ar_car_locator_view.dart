@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
@@ -75,7 +76,9 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
         }
       }
     } catch (e) {
-      print('Error initializing camera: $e');
+      if (kDebugMode) {
+        print('Error initializing camera: $e');
+      }
     }
   }
 

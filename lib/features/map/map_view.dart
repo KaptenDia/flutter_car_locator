@@ -8,8 +8,8 @@ import 'package:flutter_car_locator/core/providers/campaign_provider.dart';
 import 'package:flutter_car_locator/core/providers/car_anchor_provider.dart';
 import 'package:flutter_car_locator/core/providers/location_provider.dart';
 import 'package:flutter_car_locator/core/providers/user_provider.dart';
-import 'package:flutter_car_locator/features/ar_locator/views/ar_car_locator_view.dart';
-import 'package:flutter_car_locator/features/retail_discovery/views/campaign_detail_view.dart';
+import 'package:flutter_car_locator/features/ar_locator/ar_car_locator_view.dart';
+import 'package:flutter_car_locator/features/retail_discovery/campaign_detail_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
