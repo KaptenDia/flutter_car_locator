@@ -486,13 +486,27 @@ class CampaignDetailView extends ConsumerWidget {
   bool _canClaimReward(RewardModel reward, UserModel? user) {
     if (user == null) return false;
     if (reward.isExpired) return false;
-    if (reward.requiredLoyaltyLevel == null) return true;
 
     final loyaltyLevels = LoyaltyLevel.values;
-    final requiredIndex = loyaltyLevels.indexOf(reward.requiredLoyaltyLevel!);
     final userIndex = loyaltyLevels.indexOf(user.loyaltyLevel);
 
-    return userIndex >= requiredIndex;
+    // Check campaign level requirement first
+    if (campaign.requiredLoyaltyLevel != null) {
+      final campaignRequiredIndex = loyaltyLevels.indexOf(
+        campaign.requiredLoyaltyLevel!,
+      );
+      if (userIndex < campaignRequiredIndex) return false;
+    }
+
+    // Check reward level requirement
+    if (reward.requiredLoyaltyLevel != null) {
+      final rewardRequiredIndex = loyaltyLevels.indexOf(
+        reward.requiredLoyaltyLevel!,
+      );
+      if (userIndex < rewardRequiredIndex) return false;
+    }
+
+    return true;
   }
 
   Future<void> _claimReward(WidgetRef ref, RewardModel reward) async {
