@@ -7,8 +7,8 @@ class LocationService {
   LocationService._();
 
   LocationSettings get locationSettings => const LocationSettings(
-    accuracy: LocationAccuracy.high,
-    distanceFilter: 10,
+    accuracy: LocationAccuracy.bestForNavigation,
+    distanceFilter: 0,
   );
 
   Future<bool> checkLocationPermission() async {
