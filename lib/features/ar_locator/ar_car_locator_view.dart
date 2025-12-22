@@ -17,9 +17,10 @@ class ArCarLocatorView extends ConsumerStatefulWidget {
 }
 
 class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   CameraController? _cameraController;
   bool _isCameraInitialized = false;
+  bool _isDisposing = false;
   late AnimationController _pulseAnimationController;
   late AnimationController _rotationAnimationController;
   late Animation<double> _pulseAnimation;
@@ -30,14 +31,36 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeAnimations();
-    _initializeCamera();
     _initializeCompass();
+    // Delay camera initialization to avoid race conditions
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _initializeCamera();
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final CameraController? cameraController = _cameraController;
+
+    // App state changed before we got the chance to initialize.
+    if (cameraController == null || !cameraController.value.isInitialized) {
+      return;
+    }
+
+    if (state == AppLifecycleState.inactive) {
+      _disposeCamera();
+    } else if (state == AppLifecycleState.resumed) {
+      _initializeCamera();
+    }
   }
 
   void _initializeCompass() {
     _compassSubscription = FlutterCompass.events?.listen((CompassEvent event) {
-      if (mounted) {
+      if (mounted && !_isDisposing) {
         setState(() {
           _heading = event.heading;
         });
@@ -72,34 +95,86 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
   }
 
   Future<void> _initializeCamera() async {
+    if (_isDisposing) return;
+
     try {
       final cameraPermission = await Permission.camera.request();
+
+      if (!mounted || _isDisposing) return;
+
       if (cameraPermission.isGranted) {
         final cameras = await availableCameras();
+
+        if (!mounted || _isDisposing) return;
+
         if (cameras.isNotEmpty) {
+          // Dispose existing controller if any
+          await _disposeCamera();
+
           _cameraController = CameraController(
             cameras.first,
             ResolutionPreset.medium,
             enableAudio: false,
+            imageFormatGroup: ImageFormatGroup.jpeg,
           );
-          await _cameraController!.initialize();
-          if (mounted) {
+
+          try {
+            await _cameraController!.initialize();
+
+            if (!mounted || _isDisposing) {
+              await _disposeCamera();
+              return;
+            }
+
             setState(() {
               _isCameraInitialized = true;
             });
+          } catch (e) {
+            if (kDebugMode) {
+              print('Error initializing camera controller: $e');
+            }
+            await _disposeCamera();
           }
+        }
+      } else {
+        if (kDebugMode) {
+          print('Camera permission not granted');
         }
       }
     } catch (e) {
       if (kDebugMode) {
         print('Error initializing camera: $e');
       }
+      await _disposeCamera();
+    }
+  }
+
+  Future<void> _disposeCamera() async {
+    if (_cameraController != null) {
+      try {
+        if (_cameraController!.value.isInitialized) {
+          await _cameraController!.dispose();
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error disposing camera: $e');
+        }
+      } finally {
+        _cameraController = null;
+        if (mounted && !_isDisposing) {
+          setState(() {
+            _isCameraInitialized = false;
+          });
+        }
+      }
     }
   }
 
   @override
   void dispose() {
-    _cameraController?.dispose();
+    _isDisposing = true;
+    WidgetsBinding.instance.removeObserver(this);
+    _disposeCamera();
     _pulseAnimationController.dispose();
     _rotationAnimationController.dispose();
     _compassSubscription?.cancel();
@@ -109,9 +184,7 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
   @override
   Widget build(BuildContext context) {
     final carAnchor = ref.watch(carAnchorNotifierProvider);
-    final currentLocation = ref
-        .watch(locationStreamNotifierProvider)
-        .valueOrNull;
+    final currentLocation = ref.watch(locationNotifierProvider);
 
     // Check if no car is marked
     if (carAnchor == null) {
@@ -196,7 +269,9 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
   }
 
   Widget _buildCameraView() {
-    if (_isCameraInitialized && _cameraController != null) {
+    if (_isCameraInitialized &&
+        _cameraController != null &&
+        _cameraController!.value.isInitialized) {
       return SizedBox.expand(child: CameraPreview(_cameraController!));
     } else {
       return Container(
