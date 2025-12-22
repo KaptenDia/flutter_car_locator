@@ -100,6 +100,11 @@ class CampaignNotifier extends _$CampaignNotifier {
           .toList();
 
       state = campaigns;
+
+      // DEBUG: Print QR codes for testing
+      if (kDebugMode) {
+        _printTestQrCodes();
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error loading campaigns: $e');
@@ -109,6 +114,75 @@ class CampaignNotifier extends _$CampaignNotifier {
         state = [];
       }
     }
+  }
+
+  // DEBUG METHOD: Print QR codes for all campaigns and rewards
+  void _printTestQrCodes() {
+    if (state.isEmpty) {
+      debugPrint('═══════════════════════════════════════');
+      debugPrint('NO CAMPAIGNS AVAILABLE FOR QR TESTING');
+      debugPrint('═══════════════════════════════════════');
+      return;
+    }
+
+    debugPrint('═══════════════════════════════════════');
+    debugPrint('QR CODES FOR TESTING');
+    debugPrint('═══════════════════════════════════════');
+
+    for (var campaign in state) {
+      debugPrint('\n📍 Campaign: ${campaign.title}');
+      debugPrint('   Type: ${campaign.type.name}');
+      debugPrint(
+        '   Campaign QR: ${AppConstants.qrCodePrefix}CAMPAIGN_${campaign.id}',
+      );
+
+      if (campaign.rewards.isNotEmpty) {
+        debugPrint('   Rewards:');
+        for (var reward in campaign.rewards) {
+          debugPrint('   - ${reward.title}');
+          debugPrint(
+            '     Reward QR: ${AppConstants.qrCodePrefix}REWARD_${reward.id}',
+          );
+        }
+      }
+    }
+
+    debugPrint('\n═══════════════════════════════════════');
+    debugPrint('Total Campaigns: ${state.length}');
+    debugPrint('═══════════════════════════════════════\n');
+  }
+
+  // PUBLIC METHOD: Get QR code for a specific campaign
+  String getCampaignQrCode(String campaignId) {
+    return '${AppConstants.qrCodePrefix}CAMPAIGN_$campaignId';
+  }
+
+  // PUBLIC METHOD: Get QR code for a specific reward
+  String getRewardQrCode(String rewardId) {
+    return '${AppConstants.qrCodePrefix}REWARD_$rewardId';
+  }
+
+  // PUBLIC METHOD: Get all QR codes for testing
+  Map<String, dynamic> getAllQrCodes() {
+    final qrCodes = <String, dynamic>{};
+
+    for (var campaign in state) {
+      qrCodes[campaign.id] = {
+        'campaign_title': campaign.title,
+        'campaign_qr': getCampaignQrCode(campaign.id),
+        'rewards': campaign.rewards
+            .map(
+              (reward) => {
+                'reward_title': reward.title,
+                'reward_id': reward.id,
+                'reward_qr': getRewardQrCode(reward.id),
+              },
+            )
+            .toList(),
+      };
+    }
+
+    return qrCodes;
   }
 
   CampaignType _mapOsmTypeToCampaignType(Map<String, dynamic> tags) {
