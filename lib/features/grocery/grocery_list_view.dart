@@ -46,6 +46,14 @@ class _GroceryListViewState extends ConsumerState<GroceryListView> {
             onSelected: _handleMenuAction,
             itemBuilder: (context) => [
               const PopupMenuItem(
+                value: 'switch_list',
+                child: Text('Switch List'),
+              ),
+              const PopupMenuItem(
+                value: 'rename_list',
+                child: Text('Rename List'),
+              ),
+              const PopupMenuItem(
                 value: 'clear_completed',
                 child: Text('Clear Completed Items'),
               ),
@@ -361,12 +369,16 @@ class _GroceryListViewState extends ConsumerState<GroceryListView> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => _sendToValet(),
+                onPressed: groceryList.items.isEmpty
+                    ? null
+                    : () => _sendToValet(),
                 icon: const Icon(Icons.send),
                 label: const Text('Send to Valet'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(AppColors.primaryColor),
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey[300],
+                  disabledForegroundColor: Colors.grey[500],
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -525,22 +537,222 @@ class _GroceryListViewState extends ConsumerState<GroceryListView> {
 
   void _handleMenuAction(String action) {
     switch (action) {
+      case 'switch_list':
+        _showSwitchListSheet(context);
+        break;
+      case 'rename_list':
+        _showRenameListDialog(context);
+        break;
       case 'clear_completed':
         _clearCompleted();
         break;
       case 'duplicate_list':
-        ref.read(groceryListNotifierProvider.notifier).duplicateCurrentList();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('List duplicated successfully'),
-            backgroundColor: Color(AppColors.successColor),
-          ),
-        );
+        final currentList = ref.read(groceryListNotifierProvider);
+        if (currentList != null) {
+          ref
+              .read(allGroceryListsNotifierProvider.notifier)
+              .duplicateList(currentList);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('List duplicated successfully'),
+              backgroundColor: Color(AppColors.successColor),
+            ),
+          );
+        }
         break;
       case 'new_list':
         _showNewListDialog(context);
         break;
     }
+  }
+
+  void _showSwitchListSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Consumer(
+        builder: (context, ref, child) {
+          final allLists = ref.watch(allGroceryListsNotifierProvider);
+          final activeList = ref.watch(groceryListNotifierProvider);
+
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.list_alt,
+                        color: Color(AppColors.primaryColor),
+                      ),
+                      SizedBox(width: 12),
+                      Text(
+                        'Your Grocery Lists',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: allLists.length,
+                    itemBuilder: (context, index) {
+                      final list = allLists[index];
+                      final isActive = activeList?.id == list.id;
+
+                      return ListTile(
+                        leading: Icon(
+                          isActive ? Icons.check_circle : Icons.circle_outlined,
+                          color: isActive
+                              ? const Color(AppColors.successColor)
+                              : Colors.grey,
+                        ),
+                        title: Text(
+                          list.name,
+                          style: TextStyle(
+                            fontWeight: isActive
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '${list.items.length} items • ${list.isSentToValet ? 'Sent to Valet' : 'Draft'}',
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                          ),
+                          onPressed: allLists.length > 1
+                              ? () => _confirmDeleteList(context, list)
+                              : null,
+                        ),
+                        onTap: () {
+                          ref
+                              .read(allGroceryListsNotifierProvider.notifier)
+                              .switchList(list.id);
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _showNewListDialog(context);
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Create New List'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(AppColors.primaryColor),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _confirmDeleteList(BuildContext context, GroceryListModel list) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete List'),
+        content: Text('Are you sure you want to delete "${list.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              ref
+                  .read(allGroceryListsNotifierProvider.notifier)
+                  .removeList(list.id);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRenameListDialog(BuildContext context) {
+    final currentList = ref.read(groceryListNotifierProvider);
+    if (currentList == null) return;
+
+    final nameController = TextEditingController(text: currentList.name);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rename List'),
+        content: TextField(
+          controller: nameController,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'List Name *',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newName = nameController.text.trim();
+              if (newName.isEmpty) return;
+
+              ref
+                  .read(groceryListNotifierProvider.notifier)
+                  .renameGroceryList(newName);
+
+              Navigator.pop(context);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('List renamed successfully'),
+                  backgroundColor: Color(AppColors.successColor),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(AppColors.primaryColor),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showAddItemDialog(BuildContext context) {
@@ -712,8 +924,8 @@ class _GroceryListViewState extends ConsumerState<GroceryListView> {
               if (nameController.text.trim().isEmpty) return;
 
               ref
-                  .read(groceryListNotifierProvider.notifier)
-                  .createNewGroceryList(nameController.text.trim());
+                  .read(allGroceryListsNotifierProvider.notifier)
+                  .createNewList(nameController.text.trim());
 
               Navigator.pop(context);
 

@@ -7,7 +7,7 @@ import '../constants/constants.dart';
 
 part 'grocery_provider.g.dart';
 
-// Pre-filled grocery items for demonstration
+// Pre-filled grocery items
 final _defaultGroceryItems = [
   const GroceryItemModel(
     id: 'item_1',
@@ -56,40 +56,142 @@ final _defaultGroceryItems = [
   ),
 ];
 
-@riverpod
-class GroceryListNotifier extends _$GroceryListNotifier {
+@Riverpod(keepAlive: true)
+class ActiveGroceryListIdNotifier extends _$ActiveGroceryListIdNotifier {
   @override
-  GroceryListModel? build() {
-    return _loadGroceryList();
+  String? build() {
+    return StorageService.instance.getString(
+      AppConstants.activeGroceryListIdKey,
+    );
   }
 
-  GroceryListModel? _loadGroceryList() {
-    final groceryList = StorageService.instance.getObject<GroceryListModel>(
-      AppConstants.groceryListKey,
-      (json) => GroceryListModel.fromJson(json),
+  void set(String id) {
+    StorageService.instance.setString(AppConstants.activeGroceryListIdKey, id);
+    state = id;
+  }
+}
+
+@Riverpod(keepAlive: true)
+class AllGroceryListsNotifier extends _$AllGroceryListsNotifier {
+  @override
+  List<GroceryListModel> build() {
+    return _loadAllLists();
+  }
+
+  List<GroceryListModel> _loadAllLists() {
+    final lists = StorageService.instance.getObject<List<dynamic>>(
+      AppConstants.allGroceryListsKey,
+      (json) => json as List<dynamic>,
     );
 
-    // If no saved list, create default one
-    if (groceryList == null) {
-      const uuid = Uuid();
-      final defaultList = GroceryListModel(
-        id: uuid.v4(),
-        name: 'My Grocery List',
-        items: _defaultGroceryItems,
-        createdAt: DateTime.now(),
+    if (lists == null || lists.isEmpty) {
+      final oldList = StorageService.instance.getObject<GroceryListModel>(
+        AppConstants.groceryListKey,
+        (json) => GroceryListModel.fromJson(json),
       );
-      _saveGroceryList(defaultList);
-      return defaultList;
-    } else {
-      return groceryList;
+
+      final defaultList = oldList ?? _createDefaultList();
+      final collection = [defaultList];
+      _saveAllLists(collection);
+      return collection;
+    }
+
+    return lists
+        .map((json) => GroceryListModel.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
+  GroceryListModel _createDefaultList() {
+    const uuid = Uuid();
+    return GroceryListModel(
+      id: uuid.v4(),
+      name: 'My Grocery List',
+      items: _defaultGroceryItems,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  void _saveAllLists(List<GroceryListModel> lists) {
+    StorageService.instance.setObject(
+      AppConstants.allGroceryListsKey,
+      lists.map((l) => l.toJson()).toList(),
+    );
+  }
+
+  void updateList(GroceryListModel updatedList) {
+    state = state.map((l) => l.id == updatedList.id ? updatedList : l).toList();
+    _saveAllLists(state);
+  }
+
+  void addList(GroceryListModel newList) {
+    state = [...state, newList];
+    _saveAllLists(state);
+  }
+
+  void removeList(String id) {
+    if (state.length <= 1) return;
+
+    state = state.where((l) => l.id != id).toList();
+    _saveAllLists(state);
+    final activeId = ref.read(activeGroceryListIdNotifierProvider);
+    if (activeId == id) {
+      ref
+          .read(activeGroceryListIdNotifierProvider.notifier)
+          .set(state.first.id);
     }
   }
 
-  void _saveGroceryList(GroceryListModel groceryList) {
-    // Fire and forget - no need to await for UI responsiveness
-    StorageService.instance.setObject(
-      AppConstants.groceryListKey,
-      groceryList.toJson(),
+  void createNewList(String name) {
+    const uuid = Uuid();
+    final newList = GroceryListModel(
+      id: uuid.v4(),
+      name: name,
+      items: [],
+      createdAt: DateTime.now(),
+    );
+
+    addList(newList);
+    ref.read(activeGroceryListIdNotifierProvider.notifier).set(newList.id);
+  }
+
+  void duplicateList(GroceryListModel list) {
+    const uuid = Uuid();
+    final duplicatedList = list.copyWith(
+      id: uuid.v4(),
+      name: '${list.name} (Copy)',
+      isSentToValet: false,
+      createdAt: DateTime.now(),
+      updatedAt: null,
+      items: list.items
+          .map((item) => item.copyWith(id: uuid.v4(), isCompleted: false))
+          .toList(),
+    );
+
+    addList(duplicatedList);
+    ref
+        .read(activeGroceryListIdNotifierProvider.notifier)
+        .set(duplicatedList.id);
+  }
+
+  void switchList(String id) {
+    ref.read(activeGroceryListIdNotifierProvider.notifier).set(id);
+  }
+}
+
+@Riverpod(keepAlive: true)
+class GroceryListNotifier extends _$GroceryListNotifier {
+  @override
+  GroceryListModel? build() {
+    final activeId = ref.watch(activeGroceryListIdNotifierProvider);
+    final allLists = ref.watch(allGroceryListsNotifierProvider);
+
+    if (activeId == null && allLists.isNotEmpty) {
+      return allLists.first;
+    }
+
+    return allLists.firstWhere(
+      (l) => l.id == activeId,
+      orElse: () => allLists.first,
     );
   }
 
@@ -99,8 +201,9 @@ class GroceryListNotifier extends _$GroceryListNotifier {
         items: [...state!.items, item],
         updatedAt: DateTime.now(),
       );
-      _saveGroceryList(updatedList);
-      state = updatedList;
+      ref
+          .read(allGroceryListsNotifierProvider.notifier)
+          .updateList(updatedList);
     }
   }
 
@@ -110,8 +213,9 @@ class GroceryListNotifier extends _$GroceryListNotifier {
         items: state!.items.where((item) => item.id != itemId).toList(),
         updatedAt: DateTime.now(),
       );
-      _saveGroceryList(updatedList);
-      state = updatedList;
+      ref
+          .read(allGroceryListsNotifierProvider.notifier)
+          .updateList(updatedList);
     }
   }
 
@@ -125,9 +229,9 @@ class GroceryListNotifier extends _$GroceryListNotifier {
         items: updatedItems,
         updatedAt: DateTime.now(),
       );
-
-      _saveGroceryList(updatedList);
-      state = updatedList;
+      ref
+          .read(allGroceryListsNotifierProvider.notifier)
+          .updateList(updatedList);
     }
   }
 
@@ -145,8 +249,9 @@ class GroceryListNotifier extends _$GroceryListNotifier {
         items: state!.items.where((item) => !item.isCompleted).toList(),
         updatedAt: DateTime.now(),
       );
-      _saveGroceryList(updatedList);
-      state = updatedList;
+      ref
+          .read(allGroceryListsNotifierProvider.notifier)
+          .updateList(updatedList);
     }
   }
 
@@ -156,43 +261,22 @@ class GroceryListNotifier extends _$GroceryListNotifier {
         isSentToValet: true,
         updatedAt: DateTime.now(),
       );
-      _saveGroceryList(updatedList);
-      state = updatedList;
-
-      // Show notification (fire and forget)
+      ref
+          .read(allGroceryListsNotifierProvider.notifier)
+          .updateList(updatedList);
       NotificationService.instance.showGroceryListSentNotification();
     }
   }
 
-  void createNewGroceryList(String name) {
-    const uuid = Uuid();
-    final newList = GroceryListModel(
-      id: uuid.v4(),
-      name: name,
-      items: [],
-      createdAt: DateTime.now(),
-    );
-
-    _saveGroceryList(newList);
-    state = newList;
-  }
-
-  void duplicateCurrentList() {
+  void renameGroceryList(String name) {
     if (state != null) {
-      const uuid = Uuid();
-      final duplicatedList = state!.copyWith(
-        id: uuid.v4(),
-        name: '${state!.name} (Copy)',
-        isSentToValet: false,
-        createdAt: DateTime.now(),
-        updatedAt: null,
-        items: state!.items
-            .map((item) => item.copyWith(id: uuid.v4(), isCompleted: false))
-            .toList(),
+      final updatedList = state!.copyWith(
+        name: name,
+        updatedAt: DateTime.now(),
       );
-
-      _saveGroceryList(duplicatedList);
-      state = duplicatedList;
+      ref
+          .read(allGroceryListsNotifierProvider.notifier)
+          .updateList(updatedList);
     }
   }
 }

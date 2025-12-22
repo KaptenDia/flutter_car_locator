@@ -115,16 +115,47 @@ final groceryProgressProvider = AutoDisposeProvider<double>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef GroceryProgressRef = AutoDisposeProviderRef<double>;
+String _$activeGroceryListIdNotifierHash() =>
+    r'e4eb1c22c535265a09f08c3e6ddcb3ab33873f1d';
+
+/// See also [ActiveGroceryListIdNotifier].
+@ProviderFor(ActiveGroceryListIdNotifier)
+final activeGroceryListIdNotifierProvider =
+    NotifierProvider<ActiveGroceryListIdNotifier, String?>.internal(
+      ActiveGroceryListIdNotifier.new,
+      name: r'activeGroceryListIdNotifierProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$activeGroceryListIdNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$ActiveGroceryListIdNotifier = Notifier<String?>;
+String _$allGroceryListsNotifierHash() =>
+    r'277a98ca27176825790968aedf565e0f40b5a1e5';
+
+/// See also [AllGroceryListsNotifier].
+@ProviderFor(AllGroceryListsNotifier)
+final allGroceryListsNotifierProvider =
+    NotifierProvider<AllGroceryListsNotifier, List<GroceryListModel>>.internal(
+      AllGroceryListsNotifier.new,
+      name: r'allGroceryListsNotifierProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$allGroceryListsNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$AllGroceryListsNotifier = Notifier<List<GroceryListModel>>;
 String _$groceryListNotifierHash() =>
-    r'2bb548fd356313b4f9428f4ccf2f9a2bf07ffbd7';
+    r'89edb83a498efbf626ff81579221442de9cf3bc6';
 
 /// See also [GroceryListNotifier].
 @ProviderFor(GroceryListNotifier)
 final groceryListNotifierProvider =
-    AutoDisposeNotifierProvider<
-      GroceryListNotifier,
-      GroceryListModel?
-    >.internal(
+    NotifierProvider<GroceryListNotifier, GroceryListModel?>.internal(
       GroceryListNotifier.new,
       name: r'groceryListNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -134,6 +165,6 @@ final groceryListNotifierProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$GroceryListNotifier = AutoDisposeNotifier<GroceryListModel?>;
+typedef _$GroceryListNotifier = Notifier<GroceryListModel?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
