@@ -7,6 +7,8 @@ class AppConstants {
   static const String carAnchorKey = 'car_anchor';
   static const String userDataKey = 'user_data';
   static const String groceryListKey = 'grocery_list';
+  static const String allGroceryListsKey = 'all_grocery_lists';
+  static const String activeGroceryListIdKey = 'active_grocery_list_id';
   static const String claimedRewardsKey = 'claimed_rewards';
 
   // Location Settings
