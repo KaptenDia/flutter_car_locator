@@ -39,7 +39,7 @@ dependencies:
       url: https://github.com/yajatkaul/arcore_flutter_plugin.git
       ref: master
   # Alternative AR (ARCore has limitations, will simulate AR)
-  camera: ^0.11.0+2
+  camera: ^0.11.3
 
   # Location and maps
   geolocator: ^13.0.1
