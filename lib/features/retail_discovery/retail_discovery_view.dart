@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/models/models.dart';
 import '../../../core/constants/constants.dart';
+import '../../../core/services/notification_service.dart';
 import 'campaign_detail_view.dart';
 
 class RetailDiscoveryView extends ConsumerStatefulWidget {
@@ -40,6 +41,25 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_active_outlined),
+            onPressed: () {
+              final firstCampaign = filteredCampaigns.isNotEmpty
+                  ? filteredCampaigns.first
+                  : null;
+              NotificationService.instance.showOfferExpiringNotification(
+                campaignTitle: firstCampaign?.title ?? 'Special Offer',
+                expiryTime: DateTime.now().add(const Duration(minutes: 5)),
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Simulating expiring offer notification...'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            tooltip: 'Simulate Notification',
+          ),
           IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: () => _showFilterBottomSheet(context),
