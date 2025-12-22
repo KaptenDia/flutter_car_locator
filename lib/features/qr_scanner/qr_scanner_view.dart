@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import '../../../core/constants/constants.dart';
 import '../../../core/providers/providers.dart';
+import '../retail_discovery/campaign_detail_view.dart';
 
 class QrScannerView extends ConsumerStatefulWidget {
   const QrScannerView({super.key});
@@ -366,9 +367,13 @@ class _QrScannerViewState extends ConsumerState<QrScannerView> {
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context); // Return to previous screen
-              // Navigate to campaign detail (would need navigation context)
+              Navigator.pop(context); // Close dialog
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CampaignDetailView(campaign: campaign),
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(AppColors.primaryColor),
