@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_car_locator/features/ar_locator/widgets/ar_overlay_painter_widget.dart';
+import 'package:flutter_car_locator/shared/utils/utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -222,13 +224,13 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
     double? distance;
     double? bearing;
     if (carAnchor != null && currentLocation != null) {
-      distance = _calculateDistance(
+      distance = calculateDistance(
         currentLocation.latitude,
         currentLocation.longitude,
         carAnchor.location.latitude,
         carAnchor.location.longitude,
       );
-      bearing = _calculateBearing(
+      bearing = calculateBearing(
         currentLocation.latitude,
         currentLocation.longitude,
         carAnchor.location.latitude,
@@ -299,11 +301,11 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
       builder: (context, child) {
         return CustomPaint(
           size: Size.infinite,
-          painter: ArOverlayPainter(
+          painter: ArOverlayPainterWidget(
             distance: distance,
             bearing: bearing,
             heading: heading,
-            distanceText: _formatDistance(distance),
+            distanceText: formatDistance(distance),
             pulseAnimation: _pulseAnimation.value,
             rotationAnimation: _rotationAnimation.value,
           ),
@@ -393,7 +395,7 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
                     const Icon(Icons.straighten, color: Colors.blue, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      'Distance: ${_formatDistance(distance)}',
+                      'Distance: ${formatDistance(distance)}',
                       style: const TextStyle(color: Colors.white),
                     ),
                   ],
@@ -406,7 +408,7 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
                     const Icon(Icons.navigation, color: Colors.green, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      'Direction: ${_formatBearing(bearing)}',
+                      'Direction: ${formatBearing(bearing)}',
                       style: const TextStyle(color: Colors.white),
                     ),
                   ],
@@ -417,150 +419,5 @@ class _ArCarLocatorViewState extends ConsumerState<ArCarLocatorView>
         ),
       ),
     );
-  }
-
-  double _calculateDistance(
-    double lat1,
-    double lon1,
-    double lat2,
-    double lon2,
-  ) {
-    const double earthRadius = 6371000; // meters
-    final double dLat = _degToRad(lat2 - lat1);
-    final double dLon = _degToRad(lon2 - lon1);
-
-    final double a =
-        math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(_degToRad(lat1)) *
-            math.cos(_degToRad(lat2)) *
-            math.sin(dLon / 2) *
-            math.sin(dLon / 2);
-    final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-
-    return earthRadius * c;
-  }
-
-  double _calculateBearing(double lat1, double lon1, double lat2, double lon2) {
-    final double dLon = _degToRad(lon2 - lon1);
-    final double lat1Rad = _degToRad(lat1);
-    final double lat2Rad = _degToRad(lat2);
-
-    final double y = math.sin(dLon) * math.cos(lat2Rad);
-    final double x =
-        math.cos(lat1Rad) * math.sin(lat2Rad) -
-        math.sin(lat1Rad) * math.cos(lat2Rad) * math.cos(dLon);
-
-    final double bearing = math.atan2(y, x);
-    return (bearing * 180 / math.pi + 360) %
-        360; // Convert to degrees and normalize
-  }
-
-  double _degToRad(double deg) {
-    return deg * (math.pi / 180);
-  }
-
-  String _formatDistance(double distance) {
-    if (distance < 1000) {
-      return '${distance.round()}m';
-    } else {
-      return '${(distance / 1000).toStringAsFixed(1)}km';
-    }
-  }
-
-  String _formatBearing(double bearing) {
-    const List<String> directions = [
-      'N',
-      'NE',
-      'E',
-      'SE',
-      'S',
-      'SW',
-      'W',
-      'NW',
-    ];
-    final int index = ((bearing + 22.5) / 45).floor() % 8;
-    return '${directions[index]} (${bearing.round()}°)';
-  }
-}
-
-class ArOverlayPainter extends CustomPainter {
-  final double distance;
-  final double bearing;
-  final double heading;
-  final String distanceText;
-  final double pulseAnimation;
-  final double rotationAnimation;
-
-  ArOverlayPainter({
-    required this.distance,
-    required this.bearing,
-    required this.heading,
-    required this.distanceText,
-    required this.pulseAnimation,
-    required this.rotationAnimation,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-
-    // Draw compass background
-    final compassPaint = Paint()
-      ..color = Colors.white.withAlpha(25)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    canvas.drawCircle(center, 80, compassPaint);
-
-    // Draw bearing indicator
-    // Subtract heading to make it relative to device orientation
-    final relativeBearing = (bearing - heading) * math.pi / 180;
-    final arrowEnd = Offset(
-      center.dx + 60 * math.sin(relativeBearing),
-      center.dy - 60 * math.cos(relativeBearing),
-    );
-
-    final arrowPaint = Paint()
-      ..color = Colors.red
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawLine(center, arrowEnd, arrowPaint);
-
-    // Draw car icon at the end of arrow
-    final carIconPaint = Paint()
-      ..color = Colors.red
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(arrowEnd, 8 * pulseAnimation, carIconPaint);
-
-    // Draw distance text
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: distanceText,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset(center.dx - textPainter.width / 2, center.dy + 100),
-    );
-  }
-
-  @override
-  bool shouldRepaint(ArOverlayPainter oldDelegate) {
-    return oldDelegate.distance != distance ||
-        oldDelegate.bearing != bearing ||
-        oldDelegate.heading != heading ||
-        oldDelegate.distanceText != distanceText ||
-        oldDelegate.pulseAnimation != pulseAnimation ||
-        oldDelegate.rotationAnimation != rotationAnimation;
   }
 }

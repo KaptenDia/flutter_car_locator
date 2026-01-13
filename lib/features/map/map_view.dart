@@ -10,6 +10,7 @@ import 'package:flutter_car_locator/core/providers/location_provider.dart';
 import 'package:flutter_car_locator/core/providers/user_provider.dart';
 import 'package:flutter_car_locator/features/ar_locator/ar_car_locator_view.dart';
 import 'package:flutter_car_locator/features/retail_discovery/campaign_detail_view.dart';
+import 'package:flutter_car_locator/shared/utils/utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -156,7 +157,7 @@ class _MapViewState extends ConsumerState<MapView> {
             campaign.location.longitude,
           ),
           icon: BitmapDescriptor.defaultMarkerWithHue(
-            _getCampaignMarkerColor(campaign.type),
+            getCampaignMarkerColor(campaign.type),
           ),
           infoWindow: InfoWindow(
             title: campaign.title,
@@ -257,7 +258,7 @@ class _MapViewState extends ConsumerState<MapView> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: _getLoyaltyLevelColor(user.loyaltyLevel),
+                      color: getLoyaltyLevelColor(user.loyaltyLevel),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -357,7 +358,7 @@ class _MapViewState extends ConsumerState<MapView> {
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: Color(_getCampaignTypeColor(campaign.type)),
+                        color: Color(getCampaignTypeColor(campaign.type)),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -477,52 +478,5 @@ class _MapViewState extends ConsumerState<MapView> {
         builder: (context) => CampaignDetailView(campaign: campaign),
       ),
     );
-  }
-
-  double _getCampaignMarkerColor(CampaignType type) {
-    switch (type) {
-      case CampaignType.retail:
-        return BitmapDescriptor.hueViolet;
-      case CampaignType.food:
-        return BitmapDescriptor.hueOrange;
-      case CampaignType.entertainment:
-        return BitmapDescriptor.hueMagenta;
-      case CampaignType.gas:
-        return BitmapDescriptor.hueAzure;
-      case CampaignType.shopping:
-        return BitmapDescriptor.hueBlue;
-      case CampaignType.exclusive:
-        return BitmapDescriptor.hueYellow;
-    }
-  }
-
-  int _getCampaignTypeColor(CampaignType type) {
-    switch (type) {
-      case CampaignType.retail:
-        return AppColors.retailColor;
-      case CampaignType.food:
-        return AppColors.foodColor;
-      case CampaignType.entertainment:
-        return AppColors.entertainmentColor;
-      case CampaignType.gas:
-        return AppColors.gasColor;
-      case CampaignType.shopping:
-        return AppColors.shoppingColor;
-      case CampaignType.exclusive:
-        return AppColors.exclusiveColor;
-    }
-  }
-
-  Color _getLoyaltyLevelColor(LoyaltyLevel level) {
-    switch (level) {
-      case LoyaltyLevel.bronze:
-        return Colors.brown;
-      case LoyaltyLevel.silver:
-        return Colors.grey;
-      case LoyaltyLevel.gold:
-        return Colors.amber;
-      case LoyaltyLevel.platinum:
-        return Colors.purple;
-    }
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter_car_locator/core/providers/grocery_provider.dart';
 import 'package:flutter_car_locator/core/providers/location_provider.dart';
 import 'package:flutter_car_locator/features/ar_locator/ar_car_locator_view.dart';
 import 'package:flutter_car_locator/features/grocery/grocery_list_view.dart';
+import 'package:flutter_car_locator/features/home/controller/home_action_controller.dart';
 import 'package:flutter_car_locator/features/map/map_view.dart';
 import 'package:flutter_car_locator/features/qr_scanner/qr_scanner_view.dart';
 import 'package:flutter_car_locator/features/retail_discovery/retail_discovery_view.dart';
@@ -156,21 +157,30 @@ class _HomeViewState extends ConsumerState<HomeView>
                   context,
                   icon: Icons.directions_car,
                   label: 'Mark Car',
-                  onTap: () => _markCarLocation(context),
+                  onTap: () => HomeActionController(
+                    ref: ref,
+                    context: context,
+                  ).markCarLocation(context),
                 ),
 
                 _buildQuickActionButton(
                   context,
                   icon: Icons.view_in_ar,
                   label: 'AR View',
-                  onTap: () => _openArView(context),
+                  onTap: () => HomeActionController(
+                    ref: ref,
+                    context: context,
+                  ).openArView(context),
                 ),
 
                 _buildQuickActionButton(
                   context,
                   icon: Icons.qr_code_scanner,
                   label: 'Scan QR',
-                  onTap: () => _openQrScanner(context),
+                  onTap: () => HomeActionController(
+                    ref: ref,
+                    context: context,
+                  ).openQrScanner(context),
                 ),
               ],
             ),
@@ -191,7 +201,10 @@ class _HomeViewState extends ConsumerState<HomeView>
                   context,
                   icon: Icons.send,
                   label: 'Send to Valet',
-                  onTap: () => _sendGroceryToValet(context),
+                  onTap: () => HomeActionController(
+                    ref: ref,
+                    context: context,
+                  ).sendGroceryToValet(context),
                 ),
 
                 _buildQuickActionButton(
@@ -247,44 +260,6 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
-  Future<void> _markCarLocation(BuildContext context) async {
-    Navigator.pop(context);
-
-    await ref.read(locationNotifierProvider.notifier).getCurrentLocation();
-    final location = ref.read(locationNotifierProvider);
-
-    if (location != null) {
-      await ref
-          .read(carAnchorNotifierProvider.notifier)
-          .setCarLocation(location);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(AppStrings.carLocationSaved),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    }
-  }
-
-  void _openArView(BuildContext context) {
-    Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ArCarLocatorView()),
-    );
-  }
-
-  void _openQrScanner(BuildContext context) {
-    Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const QrScannerView()),
-    );
-  }
-
   void _findCar(BuildContext context) {
     Navigator.pop(context);
 
@@ -307,41 +282,6 @@ class _HomeViewState extends ConsumerState<HomeView>
       0,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
-    );
-  }
-
-  void _sendGroceryToValet(BuildContext context) {
-    Navigator.pop(context);
-
-    final groceryList = ref.read(groceryListNotifierProvider);
-    if (groceryList == null || groceryList.items.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Your grocery list is empty'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    if (groceryList.isSentToValet) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Grocery list already sent to valet'),
-          backgroundColor: Colors.blue,
-        ),
-      );
-      return;
-    }
-
-    // Send to valet
-    ref.read(groceryListNotifierProvider.notifier).sendToValet();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(AppStrings.groceryListSentToValet),
-        backgroundColor: Colors.green,
-      ),
     );
   }
 

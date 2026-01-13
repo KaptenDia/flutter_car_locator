@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_car_locator/shared/utils/utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/providers/providers.dart';
@@ -19,7 +20,7 @@ class CampaignDetailView extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(campaign.title),
-        backgroundColor: Color(_getCampaignTypeColor(campaign.type)),
+        backgroundColor: Color(getCampaignTypeColor(campaign.type)),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -47,8 +48,8 @@ class CampaignDetailView extends ConsumerWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(_getCampaignTypeColor(campaign.type)),
-            Color(_getCampaignTypeColor(campaign.type)).withAlpha(179),
+            Color(getCampaignTypeColor(campaign.type)),
+            Color(getCampaignTypeColor(campaign.type)).withAlpha(179),
           ],
         ),
       ),
@@ -97,7 +98,7 @@ class CampaignDetailView extends ConsumerWidget {
               child: Text(
                 campaign.type.name.toUpperCase(),
                 style: TextStyle(
-                  color: Color(_getCampaignTypeColor(campaign.type)),
+                  color: Color(getCampaignTypeColor(campaign.type)),
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -112,7 +113,7 @@ class CampaignDetailView extends ConsumerWidget {
   Widget _buildDefaultImage() {
     return Center(
       child: Icon(
-        _getCampaignTypeIcon(campaign.type),
+        getCampaignTypeIcon(campaign.type),
         size: 80,
         color: Colors.white.withAlpha(204),
       ),
@@ -161,9 +162,7 @@ class CampaignDetailView extends ConsumerWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: _getLoyaltyLevelColor(
-                      campaign.requiredLoyaltyLevel!,
-                    ),
+                    color: getLoyaltyLevelColor(campaign.requiredLoyaltyLevel!),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -216,7 +215,7 @@ class CampaignDetailView extends ConsumerWidget {
                   Text(
                     campaign.isExpired
                         ? 'Expired'
-                        : 'Expires ${_formatExpiryDate(campaign.expiresAt!)}',
+                        : 'Expires ${formatExpiryDate(campaign.expiresAt!)}',
                     style: TextStyle(
                       color: campaign.isExpired
                           ? const Color(AppColors.errorColor)
@@ -546,67 +545,5 @@ class CampaignDetailView extends ConsumerWidget {
 
     // Add loyalty points for store visit
     ref.read(userNotifierProvider.notifier).addLoyaltyPoints(5);
-  }
-
-  int _getCampaignTypeColor(CampaignType type) {
-    switch (type) {
-      case CampaignType.retail:
-        return AppColors.retailColor;
-      case CampaignType.food:
-        return AppColors.foodColor;
-      case CampaignType.entertainment:
-        return AppColors.entertainmentColor;
-      case CampaignType.gas:
-        return AppColors.gasColor;
-      case CampaignType.shopping:
-        return AppColors.shoppingColor;
-      case CampaignType.exclusive:
-        return AppColors.exclusiveColor;
-    }
-  }
-
-  IconData _getCampaignTypeIcon(CampaignType type) {
-    switch (type) {
-      case CampaignType.retail:
-        return Icons.store;
-      case CampaignType.food:
-        return Icons.restaurant;
-      case CampaignType.entertainment:
-        return Icons.movie;
-      case CampaignType.gas:
-        return Icons.local_gas_station;
-      case CampaignType.shopping:
-        return Icons.shopping_bag;
-      case CampaignType.exclusive:
-        return Icons.diamond;
-    }
-  }
-
-  Color _getLoyaltyLevelColor(LoyaltyLevel level) {
-    switch (level) {
-      case LoyaltyLevel.bronze:
-        return Colors.brown;
-      case LoyaltyLevel.silver:
-        return Colors.grey;
-      case LoyaltyLevel.gold:
-        return Colors.amber;
-      case LoyaltyLevel.platinum:
-        return Colors.purple;
-    }
-  }
-
-  String _formatExpiryDate(DateTime expiry) {
-    final now = DateTime.now();
-    final difference = expiry.difference(now);
-
-    if (difference.inDays > 0) {
-      return 'in ${difference.inDays} days';
-    } else if (difference.inHours > 0) {
-      return 'in ${difference.inHours} hours';
-    } else if (difference.inMinutes > 0) {
-      return 'in ${difference.inMinutes} minutes';
-    } else {
-      return 'soon';
-    }
   }
 }

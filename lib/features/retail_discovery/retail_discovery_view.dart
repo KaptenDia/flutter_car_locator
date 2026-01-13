@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_car_locator/features/retail_discovery/widgets/retail_discovery_filter_delegate_widget.dart';
+import 'package:flutter_car_locator/features/retail_discovery/widgets/retail_discovery_header_delegate_widget.dart';
+import 'package:flutter_car_locator/shared/utils/utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/providers/providers.dart';
@@ -74,20 +77,20 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
             if (user != null)
               SliverPersistentHeader(
                 pinned: true,
-                delegate: _RetailDiscoveryHeaderDelegate(
+                delegate: RetailDiscoveryHeaderDelegate(
                   user: user,
-                  loyaltyColor: _getLoyaltyLevelColor(user.loyaltyLevel),
+                  loyaltyColor: getLoyaltyLevelColor(user.loyaltyLevel),
                 ),
               ),
             SliverPersistentHeader(
               pinned: true,
-              delegate: _RetailDiscoveryFilterDelegate(
+              delegate: RetailDiscoveryFilterDelegate(
                 selectedType: _selectedType,
                 showExclusiveOnly: _showExclusiveOnly,
                 onTypeSelected: (type) => setState(() => _selectedType = type),
                 onExclusiveChanged: (val) =>
                     setState(() => _showExclusiveOnly = val),
-                getCampaignTypeColor: _getCampaignTypeColor,
+                getCampaignTypeColor: getCampaignTypeColor,
               ),
             ),
             _buildCampaignsList(filteredCampaigns),
@@ -172,8 +175,8 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Color(_getCampaignTypeColor(campaign.type)),
-            Color(_getCampaignTypeColor(campaign.type)).withAlpha(204),
+            Color(getCampaignTypeColor(campaign.type)),
+            Color(getCampaignTypeColor(campaign.type)).withAlpha(204),
           ],
         ),
         borderRadius: const BorderRadius.only(
@@ -185,7 +188,7 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
         children: [
           Center(
             child: Icon(
-              _getCampaignTypeIcon(campaign.type),
+              getCampaignTypeIcon(campaign.type),
               size: 48,
               color: Colors.white.withAlpha(204),
             ),
@@ -203,7 +206,7 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
               child: Text(
                 campaign.type.name.toUpperCase(),
                 style: TextStyle(
-                  color: Color(_getCampaignTypeColor(campaign.type)),
+                  color: Color(getCampaignTypeColor(campaign.type)),
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
@@ -218,7 +221,7 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: _getLoyaltyLevelColor(campaign.requiredLoyaltyLevel!),
+                  color: getLoyaltyLevelColor(campaign.requiredLoyaltyLevel!),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -316,9 +319,9 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
             child: OutlinedButton(
               onPressed: () => _showCampaignDetail(campaign),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Color(_getCampaignTypeColor(campaign.type)),
+                foregroundColor: Color(getCampaignTypeColor(campaign.type)),
                 side: BorderSide(
-                  color: Color(_getCampaignTypeColor(campaign.type)),
+                  color: Color(getCampaignTypeColor(campaign.type)),
                 ),
               ),
               child: const Text('View Details'),
@@ -330,7 +333,7 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
           ElevatedButton(
             onPressed: () => _navigateToCampaign(campaign),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(_getCampaignTypeColor(campaign.type)),
+              backgroundColor: Color(getCampaignTypeColor(campaign.type)),
               foregroundColor: Colors.white,
             ),
             child: const Text('Navigate'),
@@ -426,280 +429,5 @@ class _RetailDiscoveryViewState extends ConsumerState<RetailDiscoveryView>
         },
       ),
     );
-  }
-
-  int _getCampaignTypeColor(CampaignType type) {
-    switch (type) {
-      case CampaignType.retail:
-        return AppColors.retailColor;
-      case CampaignType.food:
-        return AppColors.foodColor;
-      case CampaignType.entertainment:
-        return AppColors.entertainmentColor;
-      case CampaignType.gas:
-        return AppColors.gasColor;
-      case CampaignType.shopping:
-        return AppColors.shoppingColor;
-      case CampaignType.exclusive:
-        return AppColors.exclusiveColor;
-    }
-  }
-
-  IconData _getCampaignTypeIcon(CampaignType type) {
-    switch (type) {
-      case CampaignType.retail:
-        return Icons.store;
-      case CampaignType.food:
-        return Icons.restaurant;
-      case CampaignType.entertainment:
-        return Icons.movie;
-      case CampaignType.gas:
-        return Icons.local_gas_station;
-      case CampaignType.shopping:
-        return Icons.shopping_bag;
-      case CampaignType.exclusive:
-        return Icons.diamond;
-    }
-  }
-
-  Color _getLoyaltyLevelColor(LoyaltyLevel level) {
-    switch (level) {
-      case LoyaltyLevel.bronze:
-        return Colors.brown;
-      case LoyaltyLevel.silver:
-        return Colors.grey;
-      case LoyaltyLevel.gold:
-        return Colors.amber;
-      case LoyaltyLevel.platinum:
-        return Colors.purple;
-    }
-  }
-}
-
-class _RetailDiscoveryHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final UserModel user;
-  final Color loyaltyColor;
-
-  _RetailDiscoveryHeaderDelegate({
-    required this.user,
-    required this.loyaltyColor,
-  });
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(AppColors.primaryColor),
-            Color(AppColors.primaryColorLight),
-          ],
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(51),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      user.name.substring(0, 1).toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Hello, ${user.name}!',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: loyaltyColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              size: 12,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${user.loyaltyLevel.name.toUpperCase()} MEMBER',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${user.loyaltyPoints}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Text(
-                      'Points',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ],
-            ).animate().fadeIn(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  double get maxExtent => 100;
-
-  @override
-  double get minExtent => 100;
-
-  @override
-  bool shouldRebuild(covariant _RetailDiscoveryHeaderDelegate oldDelegate) {
-    return oldDelegate.user != user;
-  }
-}
-
-class _RetailDiscoveryFilterDelegate extends SliverPersistentHeaderDelegate {
-  final CampaignType? selectedType;
-  final bool showExclusiveOnly;
-  final Function(CampaignType?) onTypeSelected;
-  final Function(bool) onExclusiveChanged;
-  final int Function(CampaignType) getCampaignTypeColor;
-
-  _RetailDiscoveryFilterDelegate({
-    required this.selectedType,
-    required this.showExclusiveOnly,
-    required this.onTypeSelected,
-    required this.onExclusiveChanged,
-    required this.getCampaignTypeColor,
-  });
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Container(
-      color: Colors.grey[50],
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _buildFilterChip(
-              label: 'All',
-              isSelected: selectedType == null,
-              onTap: () => onTypeSelected(null),
-            ),
-            ...CampaignType.values.map(
-              (type) => _buildFilterChip(
-                label: type.name.toUpperCase(),
-                isSelected: selectedType == type,
-                onTap: () => onTypeSelected(type),
-                color: Color(getCampaignTypeColor(type)),
-              ),
-            ),
-            _buildFilterChip(
-              label: 'EXCLUSIVE',
-              isSelected: showExclusiveOnly,
-              onTap: () => onExclusiveChanged(!showExclusiveOnly),
-              color: const Color(AppColors.exclusiveColor),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterChip({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-    Color? color,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      child: FilterChip(
-        label: Text(label),
-        selected: isSelected,
-        onSelected: (_) => onTap(),
-        selectedColor:
-            color?.withAlpha(51) ??
-            const Color(AppColors.primaryColor).withAlpha(51),
-        checkmarkColor: color ?? const Color(AppColors.primaryColor),
-        labelStyle: TextStyle(
-          color: isSelected
-              ? (color ?? const Color(AppColors.primaryColor))
-              : Colors.grey[600],
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-    );
-  }
-
-  @override
-  double get maxExtent => 70;
-
-  @override
-  double get minExtent => 70;
-
-  @override
-  bool shouldRebuild(covariant _RetailDiscoveryFilterDelegate oldDelegate) {
-    return oldDelegate.selectedType != selectedType ||
-        oldDelegate.showExclusiveOnly != showExclusiveOnly;
   }
 }

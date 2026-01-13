@@ -1,6 +1,6 @@
-import 'dart:math' as math;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_car_locator/shared/utils/utils.dart';
 
 class PlacesService {
   static final PlacesService _instance = PlacesService._();
@@ -46,7 +46,7 @@ class PlacesService {
       final cLat = double.parse(coords[0]);
       final cLng = double.parse(coords[1]);
 
-      final distance = _calculateDistance(lat, lng, cLat, cLng);
+      final distance = calculateNearbyDistance(lat, lng, cLat, cLng);
       if (distance < 0.1) {
         // 100 meters
         if (kDebugMode) {
@@ -100,24 +100,5 @@ class PlacesService {
       print('All Overpass mirrors failed for $lat, $lng');
     }
     return [];
-  }
-
-  double _calculateDistance(
-    double lat1,
-    double lon1,
-    double lat2,
-    double lon2,
-  ) {
-    const double earthRadius = 6371;
-    final double dLat = (lat2 - lat1) * (3.1415926535897932 / 180);
-    final double dLon = (lon2 - lon1) * (3.1415926535897932 / 180);
-    final double a =
-        0.5 -
-        math.cos(dLat) / 2 +
-        math.cos(lat1 * (3.1415926535897932 / 180)) *
-            math.cos(lat2 * (3.1415926535897932 / 180)) *
-            (1 - math.cos(dLon)) /
-            2;
-    return earthRadius * 2 * math.asin(math.sqrt(a));
   }
 }
