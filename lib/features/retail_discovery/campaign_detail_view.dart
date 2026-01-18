@@ -277,15 +277,6 @@ class CampaignDetailView extends ConsumerWidget {
     return true;
   }
 
-  Future<void> _claimReward(WidgetRef ref, RewardModel reward) async {
-    await ref
-        .read(claimedRewardsNotifierProvider.notifier)
-        .claimReward(reward.id);
-
-    // Add loyalty points
-    await ref.read(userNotifierProvider.notifier).addLoyaltyPoints(10);
-  }
-
   void _navigateToCampaign(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

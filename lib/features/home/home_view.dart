@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_car_locator/core/constants/app_constants.dart';
 import 'package:flutter_car_locator/core/providers/car_anchor_provider.dart';
-import 'package:flutter_car_locator/core/providers/grocery_provider.dart';
 import 'package:flutter_car_locator/core/providers/location_provider.dart';
-import 'package:flutter_car_locator/features/ar_locator/ar_car_locator_view.dart';
 import 'package:flutter_car_locator/features/grocery/grocery_list_view.dart';
 import 'package:flutter_car_locator/features/home/controller/home_action_controller.dart';
 import 'package:flutter_car_locator/features/map/map_view.dart';
-import 'package:flutter_car_locator/features/qr_scanner/qr_scanner_view.dart';
 import 'package:flutter_car_locator/features/retail_discovery/retail_discovery_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_car_locator/features/profile/profile_view.dart';
